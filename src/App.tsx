@@ -1,20 +1,25 @@
 import React from 'react';
+import { BrowserRouter as Router } from "react-router-dom";
 
-import SignIn from './pages/Signin/';
-//import SignUp from './pages/SignUp/';
+
 import GlolabStyled from './styles/global';
 
-import { AuthProvider } from './hooks/AuthContext';
+//import ToastContainer from "./components/ToastContainer";
+
+import AppProvider from './hooks';
+
+import Routes from './routes';
 
 
 const  App: React.FC = () => (
   /* Inclui o fragement <> ,</> porque teremos mais de um componente Html  */
-    <>
-        <AuthProvider>
-            <SignIn/>
-        </AuthProvider>
+  <Router>
+        <AppProvider>
+                <Routes/>
+        </AppProvider>
+
         <GlolabStyled/>
-    </>
+  </Router>
 );
 
 export default App;

@@ -6,23 +6,36 @@ import { Form } from "@unform/web";
 
 /* Importa tudo de uma biblioteca como uma variavel */
 import * as Yup from "yup";
+import { Link, useHistory } from "react-router-dom";
+
+
+import api from '../../services/api';
+
+import { useToast } from "../../hooks/toast";
 
 import getValidationErros from "../../utils/getValidationErrors";
 
 import logoImg from '../../assets/logo.svg';
 
-import { Container, Content, Background } from './styles';
+import { Container, Content, AnimationContainer, Background } from './styles';
 
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 
-
+/* Tipando os dados para envia a Api */
+interface SignUpFormData{
+    name: string;
+    email: string;
+    password: string;
+}
 
 const SignUp: React.FC = () => {
     const formRef =  useRef<FormHandles>(null);
+    const { addToast } = useToast();
+    const history = useHistory();
 
     /* Lidar com o Submit do form */
-    const handleSubmit = useCallback( async (data: object) =>  {
+    const handleSubmit = useCallback( async (data: SignUpFormData) =>  {
         try {
             formRef.current?.setErrors({});
 
@@ -36,13 +49,34 @@ const SignUp: React.FC = () => {
             await schema.validate(data,{
                 abortEarly: false //Ao declarar a propriedade abortEarly como false o Yup ira apresentar todos os erros.
             });
-        } catch (err) {
-            console.log(err);
 
-            const errors = getValidationErros(err);
-            formRef.current?.setErrors(errors);
+            /* inserindo Dados de Cadastro de Usuários */
+            await api.post('/users', data);
+
+            history.push('/');
+
+            addToast({
+                type:'success' ,
+                title:'Cadastro realizado!',
+                description:'Já é possível fazer logon no GoBarber.',
+            })
+
+        } catch (err) {
+            if(err instanceof Yup.ValidationError){
+             const errors = getValidationErros(err);
+
+             formRef.current?.setErrors(errors);
+
+             return;
+            }
+
+            addToast({
+                type: 'error',
+                title: 'Erro no Cadastro!',
+                description: 'Ocorreu um erro ao realizar o cadastro, tente novamente.'
+            })
         }
-    }, []);
+    }, [addToast, history]);
 
 
 
@@ -51,6 +85,7 @@ const SignUp: React.FC = () => {
     <Container>
          <Background/>
         <Content>
+            <AnimationContainer>
             <img src={logoImg} alt="GoBarber"/>
 
             <Form ref={formRef} onSubmit={handleSubmit}>
@@ -64,9 +99,10 @@ const SignUp: React.FC = () => {
 
                 <Button type="submit">Cadastrar</Button>
 
-            </Form>
-            <FiArrowLeft/>
-                Voltar para logon
+                </Form>
+                <FiArrowLeft/>
+                <Link to="/">Voltar para logon</Link>
+            </AnimationContainer>
         </Content>
 
 

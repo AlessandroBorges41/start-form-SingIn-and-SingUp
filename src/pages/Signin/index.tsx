@@ -5,7 +5,10 @@ import { FormHandles } from "@unform/core";
 import { Form } from "@unform/web";
 import * as Yup from 'yup';
 
-import { useAuth } from '../../hooks/AuthContext';
+import { Link } from "react-router-dom";
+
+import { useAuth } from '../../hooks/auth';
+import { useToast } from '../../hooks/toast';
 
 import  getValidationErros from "../../utils/getValidationErrors";
 
@@ -14,7 +17,7 @@ import logoImg from '../../assets/logo.svg';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 
-import { Container, Content, Background } from './styles';
+import { Container, Content, AnimationContainer, Background } from './styles';
 
 /* Interface a ser usada para tipar os dados enviado para autenticação */
 interface SignInFormData {
@@ -25,11 +28,13 @@ interface SignInFormData {
 const SignIn: React.FC = () => {
     const formRef =  useRef<FormHandles>(null);
 
+
     /* const { user, signIn } = useContext(AuthContext); */
     /* Trabalhando com Hook (ganços) */
     /* const { user, signIn } = useAuth(); */
 
     const { signIn } = useAuth();
+    const { addToast } = useToast();
 
     //console.log(user);
 
@@ -47,7 +52,7 @@ const SignIn: React.FC = () => {
             await schema.validate(data,{
                 abortEarly: false //Ao declarar a propriedade abortEarly como false o Yup ira apresentar todos os erros.
             });
-            signIn({
+            await signIn({
                 email: data.email,
                 password: data.password
             });
@@ -58,33 +63,45 @@ const SignIn: React.FC = () => {
                 const errors = getValidationErros(err);
 
                 formRef.current?.setErrors(errors);
+                return;
             }
 
-            /* Caso o erro não seja uma instância do YUP, serpa utilizado o disparo de um TOAST */
 
-
+            /* Caso o erro não seja uma instância do YUP, será utilizado o disparo de um TOAST
+               que é um componente criado no aplicativo
+            */
+            addToast({
+                type: 'error',
+                title: 'Erro na autenticação',
+                description: 'Ocorreu um erro ao fazer login, verifique as credenciais',
+            });
         }
-    }, [signIn]);
+    },
+     [signIn, addToast],
+    );
+
     return(
     /* Conteiner é um type criando em nossa aplicação */
     <Container>
         <Content>
-            <img src={logoImg} alt="GoBarber"/>
+            <AnimationContainer>
+                <img src={logoImg} alt="GoBarber"/>
 
-            <Form ref={formRef} onSubmit={handleSubmit}>
-                <h1>Faça seu logon</h1>
+                <Form ref={formRef} onSubmit={handleSubmit}>
+                    <h1>Faça seu logon</h1>
 
-                <Input name="email" icon={FiMail} placeholder="E-mail" />
+                    <Input name="email" icon={FiMail} placeholder="E-mail" />
 
-                <Input name="password" icon={FiLock} type="password"  placeholder="Senha" />
+                    <Input name="password" icon={FiLock} type="password"  placeholder="Senha" />
 
-                <Button type="submit">Entrar</Button>
+                    <Button type="submit">Entrar</Button>
 
-                <a href="forgot">Esqueci minha senha</a>
+                    <a href="forgot">Esqueci minha senha</a>
 
-            </Form>
-            <FiLogIn/>
-            <a href="login">Criar Conta</a>
+                </Form>
+                <FiLogIn/>
+                <Link to="/signup">Criar Conta</Link>
+            </AnimationContainer>
         </Content>
 
         <Background/>
